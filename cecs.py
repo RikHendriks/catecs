@@ -21,7 +21,7 @@ class World:
 
     # Entity functions
     def create_entity(self, *components):
-        """ Creates a new entity.
+        """Creates a new entity.
 
         This method creates a new entity in the world, this is just a plain integer.
         You can optionally pass components to be added to the entity.
@@ -38,6 +38,14 @@ class World:
         return self.current_entity_id
 
     def delete_entity(self, entity, immediate=False):
+        """Deletes an entity.
+
+        This method deletes an entity. An entity can be immediately created or can be put on a dead_entity list.
+        The entities in the dead_entity list are removed when one of the system process methods is called.
+
+        :param entity: The id of the entity that needs to be deleted.
+        :param immediate: If true the entity is immediately deleted.
+        """
         if immediate:
             for component_type in self.entities[entity]:
                 self.components[component_type].discard(entity)
@@ -51,6 +59,10 @@ class World:
             self.dead_entities.add(entity)
 
     def delete_dead_entities(self):
+        """Deletes the entities in the dead_entity list.
+
+        This method deletes all the dead_entities from the World.
+        """
         if self.dead_entities:
             for entity in self.dead_entities:
                 self.delete_entity(entity, immediate=True)
@@ -58,18 +70,40 @@ class World:
 
     # Component functions
     def get_component_from_entity(self, entity, component_type):
+        """Get the component instance of a component type from the entity.
+
+        :param entity: The id of the entity.
+        :param component_type: The component type.
+        :return: The component instance.
+        """
         return self.entities[entity][component_type]
 
     def get_all_components_from_entity(self, entity):
+        """Get all the components from the entity.
+
+        :param entity: The id of the entity.
+        :return: Returns all components from the entity as a tuple.
+        """
         return tuple(self.entities[entity].values())
 
     def has_component(self, entity_id, component_type):
+        """Checks if the entity has an instance of the given component type.
+
+        :param entity_id: The id of the entity.
+        :param component_type: The component type that needs to be checked.
+        :return: Returns true if the entity has a component of the component type.
+        """
         if entity_id in self.entities:
             if component_type in self.entities[entity_id]:
                 return True
         return False
 
     def add_component(self, entity_id, component_instance):
+        """Add a component to the given entity.
+
+        :param entity_id: The id of the entity.
+        :param component_instance: The component instance to add.
+        """
         if entity_id in self.entities:
             if type(component_instance) in self.components:
                 self.components[type(component_instance)].add(entity_id)
@@ -77,25 +111,38 @@ class World:
                 self.components[type(component_instance)] = set()
             self.entities[entity_id][type(component_instance)] = component_instance
 
-    def remove_component(self, entity, component_type):
-        self.components[component_type].discard(entity)
+    def remove_component(self, entity_id, component_type):
+        """Removes a component from the given entity.
+
+        :param entity_id: The id of the entity.
+        :param component_type: The component type to remove.
+        """
+        self.components[component_type].discard(entity_id)
 
         if not self.components[component_type]:
             del self
 
-        del self.entities[entity][component_type]
+        del self.entities[entity_id][component_type]
 
-        if not self.entities[entity]:
-            del self.entities[entity]
-
-        return entity
+        if not self.entities[entity_id]:
+            del self.entities[entity_id]
 
     def get_component(self, component_type):
+        """Get all entities with the given component type.
+
+        :param component_type: The component type.
+        :return: Iterator on the entities with the given component type as a tuple (entity, component).
+        """
         entity_db = self.entities
         for entity in self.components.get(component_type, []):
             yield entity, entity_db[entity][component_type]
 
     def get_components(self, *component_types):
+        """Get all entities with the given component types.
+
+        :param component_types: The component types.
+        :return: Iterator on the entities with the given component types as a tuple (enitty, components).
+        """
         entity_db = self.entities
         comp_db = self.components
 
@@ -107,6 +154,12 @@ class World:
 
     # System functions
     def add_system(self, system_instance, category=""):
+        """Add a system to the World.
+
+        :param system_instance: The instance of the system.
+        :param category: The category the system is in.
+        :return: The id of the system.
+        """
         self.current_system_id += 1
         if category in self.systems:
             self.category_systems[category] += self.current_system_id
@@ -117,6 +170,10 @@ class World:
         return self.current_system_id
 
     def process_system(self, *systems):
+        """Processes the given systems.
+
+        :param systems: The id of the systems.
+        """
         self.delete_dead_entities()
 
         for system in systems:
@@ -124,6 +181,10 @@ class World:
                 self.systems[system].process()
 
     def process_system_category(self, *system_categories):
+        """Process the systems in the given categories.
+
+        :param system_categories: The system categories from which all systems need to be processed.
+        """
         self.delete_dead_entities()
 
         for system_category in system_categories:
@@ -132,6 +193,8 @@ class World:
                     self.systems[system_id].update()
 
     def process_all(self):
+        """Process all systems in the World.
+        """
         self.delete_dead_entities()
 
         for system in self.systems.values():
@@ -140,8 +203,13 @@ class World:
 
 class System:
     """System class"""
+
     def __init__(self):
+        """The initializer of the System.
+        """
         self.world = None
 
     def process(self):
+        """The process method.
+        """
         pass
