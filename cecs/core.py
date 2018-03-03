@@ -6,18 +6,17 @@ class World:
 
     def __init__(self):
         """A World object keeps track of all Entities, Components and Systems.
-
         """
         # Entities
-        self.current_entity_id = 0
+        self.current_entity_id = -1
         self.entities = {}
         self.dead_entities = set()
         # Components
         self.components = {}
-        self.current_system_id = 0
+        self.current_system_id = -1
         # Systems
         self.systems = {}
-        self.category_systems = {}
+        self.system_categories = {}
 
     # Entity functions
     def create_entity(self, *components):
@@ -105,10 +104,10 @@ class World:
         :param component_instance: The component instance to add.
         """
         if entity_id in self.entities:
-            if type(component_instance) in self.components:
-                self.components[type(component_instance)].add(entity_id)
-            else:
+            if type(component_instance) not in self.components:
                 self.components[type(component_instance)] = set()
+
+            self.components[type(component_instance)].add(entity_id)
             self.entities[entity_id][type(component_instance)] = component_instance
 
     def remove_component(self, entity_id, component_type):
@@ -120,7 +119,8 @@ class World:
         self.components[component_type].discard(entity_id)
 
         if not self.components[component_type]:
-            del self
+            # TODO check the following line for correctness
+            del self.components[component_type]
 
         del self.entities[entity_id][component_type]
 
@@ -153,43 +153,71 @@ class World:
             pass
 
     # System functions
-    def add_system(self, system_instance, category=""):
+    def add_system(self, system_instance, system_category=""):
         """Add a system to the World.
 
         :param system_instance: The instance of the system.
-        :param category: The category the system is in.
+        :param system_category: The category the system is in.
         :return: The id of the system.
         """
         self.current_system_id += 1
-        if category in self.systems:
-            self.category_systems[category] += self.current_system_id
-        else:
-            self.category_systems[category] = set()
+        if system_category not in self.system_categories:
+            self.system_categories[system_category] = set()
+
+        self.system_categories[system_category].add(self.current_system_id)
         self.systems[self.current_system_id] = system_instance
         system_instance.world = self
+        system_instance.system_category = system_category
         return self.current_system_id
 
-    def process_system(self, *systems):
-        """Processes the given systems.
+    def remove_system(self, system_id):
+        """"Remove a system from the World.
 
-        :param systems: The id of the systems.
+        :param system_id: The id of the system that needs to be removed.
         """
-        self.delete_dead_entities()
+        sys = self.systems[system_id]
+        cat = sys.system_category
 
-        for system in systems:
-            if system in self.systems:
-                self.systems[system].process()
+        self.system_categories[cat].discard(system_id)
 
-    def process_system_category(self, *system_categories):
+        if not self.system_categories[cat]:
+            del self.system_categories[cat]
+
+        del self.systems[system_id]
+
+    def remove_system_category(self, system_category):
+        """Remove a system category from the World.
+
+        :param system_category: The system category that needs to be removed.
+        """
+        # TODO optimize this and the following line with the list is not satisfactory
+        system_category_id_list = list(self.system_categories[system_category])
+        for system_id in system_category_id_list:
+            self.remove_system(system_id)
+
+    def get_system(self, system_id):
+        """"Gets the system that corresponds to the given id.
+
+        :param system_id: The id of the system that needs to be returned.
+        """
+        return self.systems[system_id]
+
+    def process_systems(self, *system_ids):
+        """"Process the given systems.
+
+        :param system_ids: The id of the systems that needs to be processed.
+        """
+        for system_id in system_ids:
+            self.systems[system_id].process()
+
+    def process_system_categories(self, *system_categories):
         """Process the systems in the given categories.
 
         :param system_categories: The system categories from which all systems need to be processed.
         """
-        self.delete_dead_entities()
-
         for system_category in system_categories:
-            if system_category in self.category_systems:
-                for system_id in self.category_systems[system_category]:
+            if system_category in self.system_categories:
+                for system_id in self.system_categories[system_category]:
                     self.systems[system_id].update()
 
     def process_all(self):
@@ -208,6 +236,7 @@ class System:
         """The initializer of the System.
         """
         self.world = None
+        self.system_category = None
 
     def process(self):
         """The process method.

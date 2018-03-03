@@ -22,7 +22,7 @@ def test_world_instantiation(world):
     assert type(world.dead_entities) is set
     assert type(world.components) is dict
     assert type(world.systems) is dict
-    assert type(world.category_systems) is dict
+    assert type(world.system_categories) is dict
 
 
 def test_create_entity(world):
@@ -48,12 +48,12 @@ def test_delete_entity_immediate(world):
     world.add_component(entity2, ComponentB())
     entity3 = world.create_entity()
     # Entity 2 with components
-    assert entity2 is 2
+    assert entity2 == 1
     world.delete_entity(entity2, immediate=True)
     with pytest.raises(KeyError):
         world.get_all_components_from_entity(entity2)
     # Entity 3 without components
-    assert entity3 is 3
+    assert entity3 == 2
     world.delete_entity(entity3, immediate=True)
     with pytest.raises(KeyError):
         world.get_all_components_from_entity(entity3)
@@ -65,29 +65,12 @@ def test_delete_entity_immediate(world):
 def test_delete_entity_not_immediate(world):
     entity1 = world.create_entity()
     world.add_component(entity1, ComponentA())
-    entity2 = world.create_entity()
-    world.add_component(entity2, ComponentA())
-    entity3 = world.create_entity()
-    world.add_component(entity3, ComponentA())
     # Process all
-    assert entity1 is 1
+    assert entity1 == 0
     world.delete_entity(entity1)
-    world.process_all()
+    world.delete_dead_entities()
     with pytest.raises(KeyError):
         world.get_all_components_from_entity(entity1)
-    # Process_system
-    assert entity2 is 2
-    world.delete_entity(entity2)
-    system1 = world.add_system(SystemA())
-    world.process_system(system1)
-    with pytest.raises(KeyError):
-        world.get_all_components_from_entity(entity2)
-    # Process_system_category
-    assert entity3 is 3
-    world.delete_entity(entity3)
-    world.process_system_category("")
-    with pytest.raises(KeyError):
-        world.get_all_components_from_entity(entity3)
 
 
 def test_get_component_from_entity(world):
@@ -105,7 +88,7 @@ def get_all_components_from_entity(world):
     world.add_component(entity, ComponentC())
     all_components = world.get_all_components_from_entity(entity)
     assert type(all_components) is tuple
-    assert len(all_components) is 3
+    assert len(all_components) == 3
     with pytest.raises(KeyError):
         world.get_all_components_from_entity(999)
 
@@ -136,24 +119,48 @@ def test_get_three_components(world):
     # TODO implement the test
 
 
-def add_system(world):
-    assert len(world.systems)
+def test_add_system_without_system_categories(world):
     system_a = SystemA()
     assert isinstance(system_a, cecs.System)
     world.add_system(system_a)
-    assert len(world.systems) is 1
+    assert len(world.systems) == 1
     assert isinstance(world.systems[0], cecs.System)
-    # TODO test the system categories
 
 
-def test_remove_processor(world):
-    assert False
-    # TODO implement this function and the test
+def test_add_system_with_system_categories(world):
+    # Test the correctness of adding system categories
+    system_a_id = world.add_system(SystemA(), "test_1")
+    system_b_id = world.add_system(SystemA(), "test_2")
+    world.add_system(SystemA(), "test_2")
+    assert len(world.systems) == 3
+    assert "test_1" in world.system_categories
+    assert world.get_system(system_a_id).system_category != world.get_system(system_b_id).system_category
+
+
+def test_remove_system(world):
+    system_id = world.add_system(SystemA(), "test")
+    # Remove the system and check if everything went correctly
+    world.remove_system(system_id)
+    with pytest.raises(KeyError):
+        world.get_system(system_id)
+    assert "test" not in world.system_categories
+
+
+def test_remove_system_category(world):
+    world.add_system(SystemA(), "test_1")
+    world.add_system(SystemA(), "test_2")
+    world.add_system(SystemA(), "test_2")
+    # Tests after removal of the system category
+    world.remove_system_category("test_2")
+    assert "test_2" not in world.system_categories
+    assert len(world.systems) == 1
 
 
 def test_get_system(world):
-    assert False
-    # TODO implement this function and the test
+    system_id = world.add_system(SystemA())
+    assert isinstance(world.get_system(system_id), SystemA)
+    with pytest.raises(KeyError):
+        world.get_system(system_id + 1)
 
 
 # Helper classes and functions
