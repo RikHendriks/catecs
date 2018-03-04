@@ -119,6 +119,13 @@ def test_get_three_components(world):
     # TODO implement the test
 
 
+def test_has_system_category(world):
+    system_a = SystemA()
+    assert world.has_system_category("test") is False
+    world.add_system(system_a, "test")
+    assert world.has_system_category("test")
+
+
 def test_add_system_without_system_categories(world):
     system_a = SystemA()
     assert isinstance(system_a, cecs.System)
@@ -133,7 +140,7 @@ def test_add_system_with_system_categories(world):
     system_b_id = world.add_system(SystemA(), "test_2")
     world.add_system(SystemA(), "test_2")
     assert len(world.systems) == 3
-    assert "test_1" in world.system_categories
+    assert world.has_system_category("test_1")
     assert world.get_system(system_a_id).system_category != world.get_system(system_b_id).system_category
 
 
@@ -143,7 +150,7 @@ def test_remove_system(world):
     world.remove_system(system_id)
     with pytest.raises(KeyError):
         world.get_system(system_id)
-    assert "test" not in world.system_categories
+    assert world.has_system_category("test") is False
 
 
 def test_remove_system_category(world):
@@ -152,7 +159,7 @@ def test_remove_system_category(world):
     world.add_system(SystemA(), "test_2")
     # Tests after removal of the system category
     world.remove_system_category("test_2")
-    assert "test_2" not in world.system_categories
+    assert world.has_system_category("test_2") is False
     assert len(world.systems) == 1
 
 

@@ -153,6 +153,16 @@ class World:
             pass
 
     # System functions
+    def has_system_category(self, system_category):
+        """Checks if the system category is in the world
+
+        :param system_category: The given system category name.
+        :return: True if it exists else it returns False.
+        """
+        if system_category in self.system_categories:
+            return True
+        return False
+
     def add_system(self, system_instance, system_category=""):
         """Add a system to the World.
 
