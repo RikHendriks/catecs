@@ -170,6 +170,9 @@ def test_get_system(world):
         world.get_system(system_id + 1)
 
 
+# TODO add tests for the process system functions
+
+
 # Helper classes and functions
 class ComponentA:
     def __init__(self):

@@ -226,7 +226,7 @@ class World:
         for system_category in system_categories:
             if system_category in self.system_categories:
                 for system_id in self.system_categories[system_category]:
-                    self.systems[system_id].update()
+                    self.systems[system_id].process()
 
     def process_all(self):
         """Process all systems in the World.
@@ -234,7 +234,7 @@ class World:
         self.delete_dead_entities()
 
         for system in self.systems.values():
-            system.update()
+            system.process()
 
 
 class System:
