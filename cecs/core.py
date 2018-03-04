@@ -159,9 +159,7 @@ class World:
         :param system_category: The given system category name.
         :return: True if it exists else it returns False.
         """
-        if system_category in self.system_categories:
-            return True
-        return False
+        return system_category in self.system_categories
 
     def add_system(self, system_instance, system_category=""):
         """Add a system to the World.
