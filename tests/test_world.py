@@ -26,15 +26,15 @@ def test_world_instantiation(world):
 
 
 def test_create_entity(world):
-    entity1 = world.create_entity()
-    entity2 = world.create_entity()
+    entity1 = world.add_entity()
+    entity2 = world.add_entity()
     assert type(entity1) and type(entity2) is int
     assert entity1 < entity2
 
 
 def test_create_entity_with_component(world):
-    entity1 = world.create_entity(ComponentA())
-    entity2 = world.create_entity(ComponentB())
+    entity1 = world.add_entity(ComponentA())
+    entity2 = world.add_entity(ComponentB())
     assert world.has_component(entity1, ComponentA) is True
     assert world.has_component(entity1, ComponentB) is False
     assert world.has_component(entity2, ComponentA) is False
@@ -42,11 +42,11 @@ def test_create_entity_with_component(world):
 
 
 def test_delete_entity_immediate(world):
-    entity1 = world.create_entity()
+    entity1 = world.add_entity()
     world.add_component(entity1, ComponentA())
-    entity2 = world.create_entity()
+    entity2 = world.add_entity()
     world.add_component(entity2, ComponentB())
-    entity3 = world.create_entity()
+    entity3 = world.add_entity()
     # Entity 2 with components
     assert entity2 == 1
     world.delete_entity(entity2, immediate=True)
@@ -63,7 +63,7 @@ def test_delete_entity_immediate(world):
 
 
 def test_delete_entity_not_immediate(world):
-    entity1 = world.create_entity()
+    entity1 = world.add_entity()
     world.add_component(entity1, ComponentA())
     # Process all
     assert entity1 == 0
@@ -74,7 +74,7 @@ def test_delete_entity_not_immediate(world):
 
 
 def test_get_component_from_entity(world):
-    entity = world.create_entity()
+    entity = world.add_entity()
     world.add_component(entity, ComponentA())
     assert isinstance(world.get_component_from_entity(entity, ComponentA), ComponentA)
     with pytest.raises(KeyError):
@@ -82,7 +82,7 @@ def test_get_component_from_entity(world):
 
 
 def get_all_components_from_entity(world):
-    entity = world.create_entity()
+    entity = world.add_entity()
     world.add_component(entity, ComponentA())
     world.add_component(entity, ComponentB())
     world.add_component(entity, ComponentC())
@@ -94,8 +94,8 @@ def get_all_components_from_entity(world):
 
 
 def test_has_component(world):
-    entity1 = world.create_entity()
-    entity2 = world.create_entity()
+    entity1 = world.add_entity()
+    entity2 = world.add_entity()
     world.add_component(entity1, ComponentA())
     world.add_component(entity2, ComponentB())
     assert world.has_component(entity1, ComponentA) is True
