@@ -19,7 +19,7 @@ class World:
         self.system_categories = {}
 
     # Entity functions
-    def create_entity(self, *components):
+    def add_entity(self, *components):
         """Creates a new entity.
 
         This method creates a new entity in the world, this is just a plain integer.
