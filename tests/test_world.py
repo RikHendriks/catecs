@@ -105,8 +105,11 @@ def test_has_component(world):
 
 
 def test_get_component(world):
-    assert False
-    # TODO implement the test
+    component_instance = ComponentA()
+    entity_id = world.add_entity(component_instance)
+    for get_entity_id, get_component_instance in world.get_component(ComponentA):
+        assert entity_id is get_entity_id
+        assert component_instance is get_component_instance
 
 
 def test_get_two_components(world):
@@ -142,6 +145,14 @@ def test_add_system_with_system_categories(world):
     assert len(world.systems) == 3
     assert world.has_system_category("test_1")
     assert world.get_system(system_a_id).system_category != world.get_system(system_b_id).system_category
+
+
+def test_initialize_system(world):
+    # Test the initialization of the system
+    system_instance = SystemA()
+    assert system_instance.a == 1
+    system_id = world.add_system(system_instance)
+    assert world.get_system(system_id).a == 2
 
 
 def test_remove_system(world):
@@ -194,7 +205,11 @@ class ComponentC:
 
 class SystemA(cecs.System):
     def __init__(self):
+        self.a = 1
         super().__init__()
+
+    def initialize(self):
+        self.a = 2
 
     def process(self):
         pass

@@ -176,6 +176,8 @@ class World:
         self.systems[self.current_system_id] = system_instance
         system_instance.world = self
         system_instance.system_category = system_category
+        # Initialize the system
+        system_instance.initialize()
         return self.current_system_id
 
     def remove_system(self, system_id):
@@ -246,7 +248,12 @@ class System:
         self.world = None
         self.system_category = None
 
+    def initialize(self):
+        """The initialize method of the system.
+        """
+        pass
+
     def process(self):
-        """The process method.
+        """The process method of the system.
         """
         pass
