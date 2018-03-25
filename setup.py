@@ -1,12 +1,19 @@
-from setuptools import setup
+from setuptools import setup, find_packages
+
+with open('README.md') as f:
+    readme = f.read()
+
+with open('LICENSE') as f:
+    lic = f.read()
 
 setup(
-    name='cecs',
+    name='catecs',
     version='0.1',
-    packages=['cecs'],
-    url='https://github.com/RikHendriks/cecs',
-    license='MIT License',
+    description='A categorical entity component system',
+    long_description=readme,
     author='Rik Hendriks',
     author_email='rikhendriks@rocketmail.com',
-    description='A categorical entity component system'
+    url='https://github.com/RikHendriks/catecs',
+    license=lic,
+    packages=find_packages(exclude='tests')
 )

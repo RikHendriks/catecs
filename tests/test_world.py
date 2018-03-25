@@ -1,11 +1,11 @@
-import cecs
+import catecs
 import pytest
 
 
 # Fixtures
 @pytest.fixture
 def world():
-    return cecs.World()
+    return catecs.World()
 
 
 @pytest.fixture
@@ -15,7 +15,7 @@ def populate_world():
 
 # Tests
 def test_world_instantiation(world):
-    assert type(world) is cecs.World
+    assert type(world) is catecs.World
     assert type(world.current_entity_id) is int
     assert type(world.current_system_id) is int
     assert type(world.entities) is dict
@@ -131,10 +131,10 @@ def test_has_system_category(world):
 
 def test_add_system_without_system_categories(world):
     system_a = SystemA()
-    assert isinstance(system_a, cecs.System)
+    assert isinstance(system_a, catecs.System)
     world.add_system(system_a)
     assert len(world.systems) == 1
-    assert isinstance(world.systems[0], cecs.System)
+    assert isinstance(world.systems[0], catecs.System)
 
 
 def test_add_system_with_system_categories(world):
@@ -203,7 +203,7 @@ class ComponentC:
         self.b = 0.5
 
 
-class SystemA(cecs.System):
+class SystemA(catecs.System):
     def __init__(self):
         self.a = 1
         super().__init__()
