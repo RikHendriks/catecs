@@ -176,9 +176,12 @@ class World:
         self.systems[self.current_system_id] = system_instance
         system_instance.world = self
         system_instance.system_category = system_category
+        # The id of the current system
+        current_id = self.current_system_id
         # Initialize the system
         system_instance.initialize()
-        return self.current_system_id
+        # Return the id of the added system
+        return current_id
 
     def remove_system(self, system_id):
         """"Remove a system from the World.
