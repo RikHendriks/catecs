@@ -8,7 +8,7 @@ with open('LICENSE') as f:
 
 setup(
     name='catecs',
-    version='0.1',
+    version='0.1.1',
     description='A categorical entity component system',
     long_description=readme,
     author='Rik Hendriks',
