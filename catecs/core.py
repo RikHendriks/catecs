@@ -1,4 +1,5 @@
 """The module that contains the cecs implementation."""
+import copy
 
 
 class World:
@@ -67,6 +68,17 @@ class World:
                 self.delete_entity(entity, immediate=True)
             self.dead_entities.clear()
 
+    def copy_entity(self, entity_id):
+        """Makes a hard copy of an entity.
+
+        :param entity_id: The id of the entity that gets copied.
+        :return: The id of the copied entity.
+        """
+        # Copy all the components from the original entity
+        copy_components = [copy.deepcopy(comp) for comp in self.get_all_components_from_entity(entity_id)]
+        # Create a new entity with the copied components and return its id
+        return self.add_entity(*copy_components)
+
     # Component functions
     def get_component_from_entity(self, entity, component_type):
         """Get the component instance of a component type from the entity.
@@ -109,6 +121,7 @@ class World:
 
             self.components[type(component_instance)].add(entity_id)
             self.entities[entity_id][type(component_instance)] = component_instance
+            return component_instance
 
     def remove_component(self, entity_id, component_type):
         """Removes a component from the given entity.
@@ -240,6 +253,18 @@ class World:
 
         for system in self.systems.values():
             system.process()
+
+    def run_system(self, system_instance):
+        """ Processes a system instance over a world without adding the system to the world.
+
+        :param system_instance: Processes this system instance over the world.
+        """
+        # Add a line element sort system and run it
+        system_id = self.add_system(system_instance)
+        # Process the preprocessor system
+        self.process_systems(system_id)
+        # Remove the preprocessor system
+        self.remove_system(system_id)
 
 
 class System:
