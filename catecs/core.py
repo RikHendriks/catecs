@@ -1,5 +1,6 @@
 """The module that contains the cecs implementation."""
 import copy
+import itertools
 
 
 class World:
@@ -81,13 +82,23 @@ class World:
 
     # Component functions
     def get_component_from_entity(self, entity, component_type):
-        """Get the component instance of a component type from the entity.
+        """Get the first component instance of a component type from the entity.
 
         :param entity: The id of the entity.
         :param component_type: The component type.
         :return: The component instance.
         """
-        return self.entities[entity][component_type]
+        return self.entities[entity][component_type][0]
+
+    def get_component_from_entity_generator(self, entity, component_type):
+        """Get the component instance generator of a component type from the entity.
+
+        :param entity: The id of the entity.
+        :param component_type: The component type.
+        :return: The component instance.
+        """
+        for component in self.entities[entity][component_type]:
+            yield component
 
     def get_all_components_from_entity(self, entity):
         """Get all the components from the entity.
@@ -95,7 +106,7 @@ class World:
         :param entity: The id of the entity.
         :return: Returns all components from the entity as a tuple.
         """
-        return tuple(self.entities[entity].values())
+        return tuple(itertools.chain.from_iterable(self.entities[entity].values()))
 
     def has_component(self, entity_id, component_type):
         """Checks if the entity has an instance of the given component type.
@@ -120,10 +131,14 @@ class World:
                 self.components[type(component_instance)] = set()
 
             self.components[type(component_instance)].add(entity_id)
-            self.entities[entity_id][type(component_instance)] = component_instance
+
+            if type(component_instance) not in self.entities[entity_id]:
+                self.entities[entity_id][type(component_instance)] = []
+
+            self.entities[entity_id][type(component_instance)].append(component_instance)
             return component_instance
 
-    def remove_component(self, entity_id, component_type):
+    def remove_component_type(self, entity_id, component_type):
         """Removes a component from the given entity.
 
         :param entity_id: The id of the entity.
@@ -132,7 +147,6 @@ class World:
         self.components[component_type].discard(entity_id)
 
         if not self.components[component_type]:
-            # TODO check the following line for correctness
             del self.components[component_type]
 
         del self.entities[entity_id][component_type]
@@ -148,20 +162,24 @@ class World:
         """
         entity_db = self.entities
         for entity in self.components.get(component_type, []):
-            yield entity, entity_db[entity][component_type]
+            for component in entity_db[entity][component_type]:
+                yield entity, component
 
     def get_components(self, *component_types):
         """Get all entities with the given component types.
 
         :param component_types: The component types.
-        :return: Iterator on the entities with the given component types as a tuple (enitty, components).
+        :return: Iterator on the entities with the given component types as a tuple (enitty, components),
+        cartesian product over the lists of the component types per entity.
         """
         entity_db = self.entities
         comp_db = self.components
 
         try:
             for entity in set.intersection(*[comp_db[ct] for ct in component_types]):
-                yield entity, [entity_db[entity][ct] for ct in component_types]
+                product_component = itertools.product(*[entity_db[entity][ct] for ct in component_types])
+                for components in product_component:
+                    yield entity, components
         except KeyError:
             pass
 
