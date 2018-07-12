@@ -38,26 +38,26 @@ class World:
 
         return self.current_entity_id
 
-    def delete_entity(self, entity, immediate=False):
+    def delete_entity(self, entity_id, immediate=False):
         """Deletes an entity.
 
         This method deletes an entity. An entity can be immediately created or can be put on a dead_entity list.
         The entities in the dead_entity list are removed when one of the system process methods is called.
 
-        :param entity: The id of the entity that needs to be deleted.
+        :param entity_id: The id of the entity that needs to be deleted.
         :param immediate: If true the entity is immediately deleted.
         """
         if immediate:
-            for component_type in self.entities[entity]:
-                self.components[component_type].discard(entity)
+            for component_type in self.entities[entity_id]:
+                self.components[component_type].discard(entity_id)
 
                 if not self.components[component_type]:
                     del self.components[component_type]
 
-            del self.entities[entity]
+            del self.entities[entity_id]
 
         else:
-            self.dead_entities.add(entity)
+            self.dead_entities.add(entity_id)
 
     def delete_dead_entities(self):
         """Deletes the entities in the dead_entity list.
@@ -81,32 +81,56 @@ class World:
         return self.add_entity(*copy_components)
 
     # Component functions
-    def get_component_from_entity(self, entity, component_type):
+    def get_component_from_entity(self, entity_id, component_type):
         """Get the first component instance of a component type from the entity.
 
-        :param entity: The id of the entity.
+        :param entity_id: The id of the entity.
         :param component_type: The component type.
         :return: The component instance.
         """
-        return self.entities[entity][component_type][0]
+        return self.entities[entity_id][component_type][0]
 
-    def get_component_from_entity_generator(self, entity, component_type):
+    def get_component_from_entity_generator(self, entity_id, component_type):
         """Get the component instance generator of a component type from the entity.
 
-        :param entity: The id of the entity.
+        :param entity_id: The id of the entity.
         :param component_type: The component type.
         :return: The component instance.
         """
-        for component in self.entities[entity][component_type]:
+        for component in self.entities[entity_id][component_type]:
             yield component
 
-    def get_all_components_from_entity(self, entity):
+    def get_components_from_entity(self, entity_id, *component_types):
+        """Get the first component instance of the component types from the entity.
+
+        :param entity_id: The id of the entity.
+        :param component_types: The component types.
+        :return: A list of the components.
+        """
+        try:
+            return [self.entities[entity_id][component_type][0] for component_type in component_types]
+        except KeyError:
+            pass
+
+    def get_all_component_types_from_entity(self, entity_id, *component_types):
+        """Get the first component instance of the component types from the entity.
+
+        :param entity_id: The id of the entity.
+        :param component_types: The component types.
+        :return: A list of the components.
+        """
+        try:
+            return [self.entities[entity_id][component_type] for component_type in component_types]
+        except KeyError:
+            pass
+
+    def get_all_components_from_entity(self, entity_id):
         """Get all the components from the entity.
 
-        :param entity: The id of the entity.
+        :param entity_id: The id of the entity.
         :return: Returns all components from the entity as a tuple.
         """
-        return tuple(itertools.chain.from_iterable(self.entities[entity].values()))
+        return tuple(itertools.chain.from_iterable(self.entities[entity_id].values()))
 
     def has_component(self, entity_id, component_type):
         """Checks if the entity has an instance of the given component type.
@@ -136,6 +160,7 @@ class World:
                 self.entities[entity_id][type(component_instance)] = []
 
             self.entities[entity_id][type(component_instance)].append(component_instance)
+            component_instance.entity_id = entity_id
             return component_instance
 
     def remove_component_type(self, entity_id, component_type):
