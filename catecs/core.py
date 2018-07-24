@@ -88,7 +88,10 @@ class World:
         :param component_type: The component type.
         :return: The component instance.
         """
-        return self.entities[entity_id][component_type][0]
+        try:
+            return self.entities[entity_id][component_type][0]
+        except KeyError:
+            pass
 
     def get_component_from_entity_generator(self, entity_id, component_type):
         """Get the component instance generator of a component type from the entity.
@@ -97,8 +100,11 @@ class World:
         :param component_type: The component type.
         :return: The component instance.
         """
-        for component in self.entities[entity_id][component_type]:
-            yield component
+        try:
+            for component in self.entities[entity_id][component_type]:
+                yield component
+        except KeyError:
+            pass
 
     def get_components_from_entity(self, entity_id, *component_types):
         """Get the first component instance of the component types from the entity.
@@ -130,7 +136,10 @@ class World:
         :param entity_id: The id of the entity.
         :return: Returns all components from the entity as a tuple.
         """
-        return tuple(itertools.chain.from_iterable(self.entities[entity_id].values()))
+        try:
+            return tuple(itertools.chain.from_iterable(self.entities[entity_id].values()))
+        except KeyError:
+            pass
 
     def has_component(self, entity_id, component_type):
         """Checks if the entity has an instance of the given component type.
@@ -279,15 +288,19 @@ class World:
         for system_id in system_ids:
             self.systems[system_id].process()
 
-    def process_system_categories(self, *system_categories):
+    def process_system_categories(self, *system_categories, ordered=False):
         """Process the systems in the given categories.
 
         :param system_categories: The system categories from which all systems need to be processed.
         """
         for system_category in system_categories:
             if system_category in self.system_categories:
-                for system_id in self.system_categories[system_category]:
-                    self.systems[system_id].process()
+                if ordered:
+                    for system_id in sorted(list(self.system_categories[system_category])):
+                        self.systems[system_id].process()
+                else:
+                    for system_id in self.system_categories[system_category]:
+                        self.systems[system_id].process()
 
     def process_all(self):
         """Process all systems in the World.
